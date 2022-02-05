@@ -1,6 +1,6 @@
 # log
 
-A simple logging library for written in Go.
+A simple logging library written in Go.
 
 ## License
 
