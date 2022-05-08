@@ -29,7 +29,7 @@ const (
 
 var outputFile = os.Stdout
 var colorEnabled = true
-var minSeverity = WARNING
+var minSeverity = INFO
 
 func log(severity Severity, args ...interface{}) {
 	if severity >= minSeverity {
