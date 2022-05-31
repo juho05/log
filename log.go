@@ -2,8 +2,11 @@ package log
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"time"
+
+	"github.com/mattn/go-colorable"
 )
 
 type color string
@@ -27,18 +30,18 @@ const (
 	NONE
 )
 
-var outputFile = os.Stdout
+var out = colorable.NewColorableStdout()
 var colorEnabled = true
 var minSeverity = INFO
 
 func log(severity Severity, args ...interface{}) {
 	if severity >= minSeverity {
-		fmt.Fprint(outputFile, logPrefix(severity), fmt.Sprintln(args...))
+		fmt.Fprint(out, logPrefix(severity), fmt.Sprintln(args...))
 	}
 }
 func logf(severity Severity, format string, args ...interface{}) {
 	if severity >= minSeverity {
-		fmt.Fprint(outputFile, logPrefix(severity), fmt.Sprintf(format+"\n", args...))
+		fmt.Fprint(out, logPrefix(severity), fmt.Sprintf(format+"\n", args...))
 	}
 }
 
@@ -104,11 +107,11 @@ func SetSeverity(severity Severity) {
 }
 
 func SetOutput(file *os.File) {
-	outputFile = file
+	out = file
 }
 
-func Output() *os.File {
-	return outputFile
+func Output() io.Writer {
+	return out
 }
 
 func logPrefix(severity Severity) string {
@@ -116,10 +119,10 @@ func logPrefix(severity Severity) string {
 }
 
 func setColor(color color) {
-	fmt.Print(color)
+	fmt.Fprint(out, color)
 }
 func resetColor() {
-	fmt.Print("\033[0m")
+	fmt.Fprint(out, "\033[0m")
 }
 
 func severityTag(severity Severity) string {
