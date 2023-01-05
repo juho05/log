@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/mattn/go-colorable"
+	"github.com/mattn/go-isatty"
 )
 
 type color string
@@ -22,25 +23,28 @@ const (
 type Severity int
 
 const (
-	TRACE Severity = iota
-	INFO
-	WARNING
-	ERROR
+	NONE Severity = iota
 	FATAL
-	NONE
+	ERROR
+	WARNING
+	INFO
+	TRACE
 )
 
-var out = colorable.NewColorableStdout()
-var colorEnabled = true
-var minSeverity = INFO
+var (
+	out          = colorable.NewColorableStderr()
+	colorEnabled = true
+	minSeverity  = INFO
+)
 
 func log(severity Severity, args ...interface{}) {
-	if severity >= minSeverity {
+	if severity <= minSeverity {
 		fmt.Fprint(out, logPrefix(severity), fmt.Sprintln(args...))
 	}
 }
+
 func logf(severity Severity, format string, args ...interface{}) {
-	if severity >= minSeverity {
+	if severity <= minSeverity {
 		fmt.Fprint(out, logPrefix(severity), fmt.Sprintf(format+"\n", args...))
 	}
 }
@@ -50,6 +54,7 @@ func Trace(args ...interface{}) {
 	log(TRACE, args...)
 	resetColor()
 }
+
 func Tracef(format string, args ...interface{}) {
 	setColor(colorTrace)
 	logf(TRACE, format, args...)
@@ -61,6 +66,7 @@ func Info(args ...interface{}) {
 	log(INFO, args...)
 	resetColor()
 }
+
 func Infof(format string, args ...interface{}) {
 	setColor(colorInfo)
 	logf(INFO, format, args...)
@@ -72,6 +78,7 @@ func Warn(args ...interface{}) {
 	log(WARNING, args...)
 	resetColor()
 }
+
 func Warnf(format string, args ...interface{}) {
 	setColor(colorWarning)
 	logf(WARNING, format, args...)
@@ -83,6 +90,7 @@ func Error(args ...interface{}) {
 	log(ERROR, args...)
 	resetColor()
 }
+
 func Errorf(format string, args ...interface{}) {
 	setColor(colorError)
 	logf(ERROR, format, args...)
@@ -95,6 +103,7 @@ func Fatal(args ...interface{}) {
 	resetColor()
 	os.Exit(1)
 }
+
 func Fatalf(format string, args ...interface{}) {
 	setColor(colorFatal)
 	logf(FATAL, format, args...)
@@ -107,7 +116,11 @@ func SetSeverity(severity Severity) {
 }
 
 func SetOutput(file *os.File) {
-	out = file
+	if isatty.IsTerminal(file.Fd()) {
+		out = colorable.NewColorable(file)
+	} else {
+		out = colorable.NewNonColorable(file)
+	}
 }
 
 func Output() io.Writer {
@@ -121,6 +134,7 @@ func logPrefix(severity Severity) string {
 func setColor(color color) {
 	fmt.Fprint(out, color)
 }
+
 func resetColor() {
 	fmt.Fprint(out, "\033[0m")
 }
