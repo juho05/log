@@ -1,4 +1,4 @@
-module github.com/Bananenpro/log
+module github.com/juho05/log
 
 go 1.16
 
